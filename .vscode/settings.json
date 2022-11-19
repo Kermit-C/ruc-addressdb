@@ -1,0 +1,9 @@
+{
+    "files.associations": {
+        "getopt.h": "c",
+        "string.h": "c",
+        "stdlib.h": "c",
+        "__tuple": "c",
+        "tuple": "c"
+    }
+}

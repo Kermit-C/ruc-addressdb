@@ -1,0 +1,28 @@
+{
+    "tasks": [
+        {
+            "type": "cppbuild",
+            "label": "Compile",
+            "command": "/usr/bin/clang",
+            "args": [
+                "-fdiagnostics-color=always",
+                "-g",
+                "-o",
+                "./dist/addressdb",
+                "./src/main.c",
+                "./src/client.c",
+                "./src/io.c",
+                "./src/schema.c"
+            ],
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "problemMatcher": [
+                "$gcc"
+            ],
+            "group": "build",
+            "detail": "编译"
+        }
+    ],
+    "version": "2.0.0"
+}
