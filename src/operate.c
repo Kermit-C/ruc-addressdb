@@ -372,32 +372,32 @@ int convert_select_syntax(char *where_syntax, char *field_syntax, struct select_
         select_where[curr_select_where_index] = (struct select_where_item *)malloc(sizeof(struct select_where_item));
         unsigned char *op_pch; // 操作符的指针
         int op_length;         // 操作符长度
-        if ((op_pch = strstr(last_where_pch + 1, "!=")) != NULL)
+        if (((op_pch = strstr(last_where_pch + 1, "!=")) != NULL) && op_pch < curr_where_pch)
         {
             select_where[curr_select_where_index]->op = 0b00000001;
             op_length = 2;
         }
-        else if ((op_pch = strstr(last_where_pch + 1, ">=")) != NULL)
+        else if (((op_pch = strstr(last_where_pch + 1, ">=")) != NULL) && op_pch < curr_where_pch)
         {
             select_where[curr_select_where_index]->op = 0b00000100;
             op_length = 2;
         }
-        else if ((op_pch = strstr(last_where_pch + 1, "<=")) != NULL)
+        else if (((op_pch = strstr(last_where_pch + 1, "<=")) != NULL) && op_pch < curr_where_pch)
         {
             select_where[curr_select_where_index]->op = 0b00000101;
             op_length = 2;
         }
-        else if ((op_pch = strstr(last_where_pch + 1, "=")) != NULL)
+        else if (((op_pch = strstr(last_where_pch + 1, "=")) != NULL) && op_pch < curr_where_pch)
         {
             select_where[curr_select_where_index]->op = 0b00000000;
             op_length = 1;
         }
-        else if ((op_pch = strstr(last_where_pch + 1, ">")) != NULL)
+        else if (((op_pch = strstr(last_where_pch + 1, ">")) != NULL) && op_pch < curr_where_pch)
         {
             select_where[curr_select_where_index]->op = 0b00000010;
             op_length = 1;
         }
-        else if ((op_pch = strstr(last_where_pch + 1, "<")) != NULL)
+        else if (((op_pch = strstr(last_where_pch + 1, "<")) != NULL) && op_pch < curr_where_pch)
         {
             select_where[curr_select_where_index]->op = 0b00000011;
             op_length = 1;

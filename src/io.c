@@ -30,11 +30,7 @@ int close_db()
 /** 往缓冲区读取 */
 int read_one(unsigned char *buf, int offset, int length)
 {
-    if (1 && offset != 0)
-    {
-        // 0 的话还是顺序读
-        lseek(db_fd, offset, 1);
-    }
+    lseek(db_fd, offset, 1);
     int n_read = read(db_fd, buf, length);
     return n_read;
 }
