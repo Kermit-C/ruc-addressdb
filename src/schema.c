@@ -6,18 +6,57 @@
 
 /**************** 模式相关 *******************/
 
+/** 定义模式的每一个字段项 */
+struct address_schema_field_item
+{
+    /**
+     * 一些字段标志
+     * * 第一位：为 0 则定长，为 1 则变长
+     * * 第二、三位：00 为 int，01 为 float，10 为 char，11 为 varchar
+     * * 后几位：保留标志
+     */
+    unsigned char sign;
+    int length;                   // 字段长度，varchar 的实际长度由字段前 4 字节（int 长度）确定
+    char name[field_name_length]; // 字段名
+};
+
 /** 通信簿用到的模式定义字段长度 */
-const int address_schema_length = 6;
+int address_schema_length = 6;
 
 /** 通信簿用到的模式定义 */
-const struct address_schema_field_item address_schema[address_schema_length] = {
-    {0b01000000, 20, "name"},         // 第一个字段：定长 char 类型，长度 20 字节，表示名字
-    {0b00000000, sizeof(int), "age"}, // 第二个字段：定长 int 类型，长度 4 字节，表示年龄
-    {0b01000000, 40, "phone"},        // 第三个字段：定长 char 类型，长度 20 字节，表示电话
-    {0b01000000, 40, "email"},        // 第四个字段：定长 char 类型，长度 40 字节，表示 email
-    {0b01000000, 128, "resume"},      // 第五个字段：定长 char 类型，长度 128 字节，表示“步骤二”的定长个人简历
-    {0b01100000, 1024, "description"} // 第六个字段：不定长 varchar 类型，最长长度 1024 字节，表示“步骤三”的不定长自述
-};
+struct address_schema_field_item *address_schema;
+
+/** 创建通信簿用到的模式定义 */
+void create_address_schema(const int address_schema_length)
+{
+    struct address_schema_field_item *new_address_schema = (struct address_schema_field_item *)malloc(address_schema_length * sizeof(struct address_schema_field_item));
+    // 第一个字段：定长 char 类型，长度 20 字节，表示名字
+    new_address_schema[0].sign = 0b01000000;
+    new_address_schema[0].length = 20;
+    strcpy(new_address_schema[0].name, "name");
+    // 第二个字段：定长 int 类型，长度 4 字节，表示年龄
+    new_address_schema[1].sign = 0b00000000;
+    new_address_schema[1].length = sizeof(int);
+    strcpy(new_address_schema[1].name, "age");
+    // 第三个字段：定长 char 类型，长度 20 字节，表示电话
+    new_address_schema[2].sign = 0b01000000;
+    new_address_schema[2].length = 40;
+    strcpy(new_address_schema[2].name, "phone");
+    // 第四个字段：定长 char 类型，长度 40 字节，表示 email
+    new_address_schema[3].sign = 0b01000000;
+    new_address_schema[3].length = 40;
+    strcpy(new_address_schema[3].name, "email");
+    // 第五个字段：定长 char 类型，长度 128 字节，表示“步骤二”的定长个人简历
+    new_address_schema[4].sign = 0b01000000;
+    new_address_schema[4].length = 128;
+    strcpy(new_address_schema[4].name, "resume");
+    // 第六个字段：不定长 varchar 类型，最长长度 1024 字节，表示“步骤三”的不定长自述
+    new_address_schema[5].sign = 0b01100000;
+    new_address_schema[5].length = 1024;
+    strcpy(new_address_schema[5].name, "description");
+
+    address_schema = new_address_schema;
+}
 
 /** 根据字段名获取字段项索引号 */
 int get_address_schema_index_from_name(char *field_name)
@@ -49,17 +88,53 @@ struct address_schema_field_item *get_address_schema_from_name(char *field_name)
     return get_address_schema_from_index(index);
 }
 
+/** 根据字段名获取字段项类型 */
+int get_address_schema_type_from_name(char *field_name)
+{
+    struct address_schema_field_item *address_schema_item = get_address_schema_from_name(field_name);
+    switch (((address_schema_item->sign >> 5) & 0b011))
+    {
+    case 0b000:
+        // int 类型
+        return 0;
+    case 0b001:
+        // float 类型
+        return 1;
+    case 0b010:
+        // char 类型
+        return 2;
+    case 0b011:
+        // varchar 类型
+        return 3;
+    default:
+        return -1;
+    }
+}
+
+/** 根据索引号获取字段名 */
+char *get_address_schema_field_name_from_index(int index)
+{
+    return get_address_schema_from_index(index)->name;
+}
+
 /**************** 元组相关 *******************/
 
 /**
  * 每个元组的结构如下：
- * - 长度: int 长度 4 Byte (一个元组最大 2^32 字节)
+ * - 长度(数据段): int 长度 4 Byte (一个元组最大 2^32 字节)
  * - 数据：不定长数据，具体由上方的模式确定
  */
 
+/** 获取缓冲区应当的长度 */
 int get_buf_length(int tuple_length)
 {
     return tuple_length + sizeof(int);
+}
+
+/** 获取缓冲区表示长度的长度 */
+int get_buf_tuple_length_length()
+{
+    return sizeof(int);
 }
 
 /** 从缓冲区获取元组长度 */

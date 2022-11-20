@@ -1,21 +1,10 @@
+#define field_name_length 20 // 字段名长度
+
 /** 定义模式的每一个字段项 */
-struct address_schema_field_item
-{
-    /**
-     * 一些字段标志
-     * * 第一位：为 0 则定长，为 1 则变长
-     * * 第二、三位：00 为 int，01 为 float，10 为 char，11 为 varchar
-     * * 后几位：保留标志
-     */
-    unsigned char sign;
-    int length;    // 字段长度，varchar 的实际长度由字段前 4 字节（int 长度）确定
-    char name[20]; // 字段名，20 字节
-};
+extern struct address_schema_field_item;
 
-extern const int address_schema_length;
-
-/** 通信簿用到的模式定义 */
-extern const struct address_schema_field_item address_schema[];
+/** 创建通信簿用到的模式定义 */
+void create_address_schema(const int address_schema_length);
 
 /** 根据字段名获取字段项索引号 */
 int get_address_schema_index_from_name(char *field_name);
@@ -25,6 +14,18 @@ struct address_schema_field_item *get_address_schema_from_index(int index);
 
 /** 根据字段名获取字段项定义 */
 struct address_schema_field_item *get_address_schema_from_name(char *field_name);
+
+/** 根据字段名获取字段项类型 */
+int get_address_schema_type_from_name(char *field_name);
+
+/** 根据索引号获取字段名 */
+char *get_address_schema_field_name_from_index(int index);
+
+/** 获取缓冲区应当的长度 */
+int get_buf_length(int tuple_length);
+
+/** 获取缓冲区表示长度的长度 */
+int get_buf_tuple_length_length();
 
 /** 从缓冲区获取元组长度 */
 int get_tuple_length(unsigned char *buf);

@@ -8,11 +8,15 @@
 #include "client.h"
 #define MAX_COMMAND 1000 // 指令最长 1000 个字符
 
+extern int address_schema_length;
+
 /** 客户端 worker */
 void client_worker(char *path)
 {
     // 打开数据库
     open_db(path);
+    // 创建模式
+    create_address_schema(address_schema_length);
 
     // 指令相关变量
     char input[MAX_COMMAND]; // 输入
@@ -24,6 +28,7 @@ void client_worker(char *path)
         input_index = 0;
         printf("addressdb> ");
         gets(input); // 键入指令
+        strcat(input, " ");
 
         // 解析命令
         int stage = 0;
@@ -44,8 +49,11 @@ void client_worker(char *path)
             if (curr_pch - (last_pch + 1) == 0)
             {
                 // 啥也不做，跳过多余空格
+                last_pch = curr_pch;
+                continue;
             }
-            else if (stage == 0)
+
+            if (stage == 0)
             {
                 if (strncmp(last_pch + 1, "select", 6) == 0)
                     strncpy(stage0, last_pch + 1, 6);
@@ -57,8 +65,8 @@ void client_worker(char *path)
                         "Commands:\n"
                         "   insert value (value0,value1,...),(value0,value1,...),...\n"
                         "           Insert into address database.\n"
-                        "   select field0,field1,... where field0=value0 and field1=value1 ...\n"
-                        "           Find value from address database.\n"
+                        "   select field0,field1,... where field0<op>value0 and field1<op>value1 ...\n"
+                        "           Find value from address database. 'op': =,>,<,>=,<=,!=.\n"
                         "   help    Show usage.\n");
                     is_complete = 1;
                     break;
@@ -95,7 +103,9 @@ void client_worker(char *path)
                 }
                 else if (strcmp(stage0, "insert") == 0)
                 {
-                    int n_insert = insert(last_pch + 1);
+                    char insert_syntax[MAX_COMMAND] = {0};
+                    strcpy(insert_syntax, last_pch + 1);
+                    int n_insert = insert(insert_syntax);
                     if (n_insert >= 0)
                     {
                         printf("%d item has been inserted.\n", n_insert);
@@ -110,12 +120,30 @@ void client_worker(char *path)
             }
             else if (stage == 3)
             {
+                if (strcmp(stage0, "select") == 0)
+                {
+                    char where_syntax[MAX_COMMAND] = {0};
+                    strcpy(where_syntax, last_pch + 1);
+                    char field_syntax[MAX_COMMAND] = {0};
+                    strcpy(field_syntax, stage1);
+                    int n_select = select_where(where_syntax, field_syntax);
+                    if (n_select >= 0)
+                    {
+                        printf("%d item has been selected.\n", n_select);
+                        is_complete = 1;
+                        break;
+                    }
+                    else
+                        break;
+                }
+                else
+                    break;
             }
             else
                 break;
 
             last_pch = curr_pch;
-            stage ++;
+            stage++;
         };
 
         if (is_complete == 0)
@@ -124,7 +152,7 @@ void client_worker(char *path)
         }
     }
 
-    close_db();
+    close_db(); // 关闭数据库
 }
 
 void show_syntax_error()

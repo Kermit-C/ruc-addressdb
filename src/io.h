@@ -10,5 +10,8 @@ int close_db();
 /** 往缓冲区读取 */
 int read_one(unsigned char *buf, int offset, int length);
 
+/** 重置读指针偏移量 */
+void reset_read_offset();
+
 /** 往缓冲区写 */
 int write_one(unsigned char *buf, int length);

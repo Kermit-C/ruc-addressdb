@@ -16,7 +16,8 @@ int open_db(char *path)
     {
         // 文件不存在，以 755 权限创建
         db_fd = creat(path, 0755);
-        return db_fd;
+        close(db_fd);
+        return open_db(path);
     }
 }
 
@@ -29,13 +30,19 @@ int close_db()
 /** 往缓冲区读取 */
 int read_one(unsigned char *buf, int offset, int length)
 {
-    if (offset >= 0)
+    if (1 && offset != 0)
     {
-        // 大于零才随机访问，-1 的话还是顺序读
-        lseek(db_fd, offset, 0);
+        // 0 的话还是顺序读
+        lseek(db_fd, offset, 1);
     }
     int n_read = read(db_fd, buf, length);
     return n_read;
+}
+
+/** 重置读指针偏移量 */
+void reset_read_offset()
+{
+    lseek(db_fd, 0, 0);
 }
 
 /** 往缓冲区写 */
