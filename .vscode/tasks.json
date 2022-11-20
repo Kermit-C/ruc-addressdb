@@ -12,7 +12,8 @@
                 "./src/main.c",
                 "./src/client.c",
                 "./src/io.c",
-                "./src/schema.c"
+                "./src/schema.c",
+                "./src/operate.c"
             ],
             "options": {
                 "cwd": "${workspaceFolder}"

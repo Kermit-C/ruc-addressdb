@@ -1,1 +1,2 @@
-void client_worker();
+void client_worker(char *path);
+void show_syntax_error();

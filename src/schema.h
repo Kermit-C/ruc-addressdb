@@ -38,11 +38,11 @@ unsigned char *get_tuple_data(unsigned char *buf);
 /** 创建一个空元组缓冲区 */
 unsigned char *create_one_buf();
 
+/** 删除一个缓冲区 */
+void delete_one_buf(unsigned char *buf);
+
 /** 从缓冲区获取字段值 */
 void *get_tuple_data_field(unsigned char *buf, char *field_name);
 
-/**
- * 往缓冲区写数据
- * @example create_tuple(output_buf, name, phone, ...);
- */
-unsigned char *write_tuple(unsigned char *output_buf, char *fmt, ...);
+/** 往缓冲区写数据 */
+int write_tuple(unsigned char *output_buf, int valuec, char **value);

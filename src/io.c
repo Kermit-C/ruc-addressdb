@@ -39,13 +39,9 @@ int read_one(unsigned char *buf, int offset, int length)
 }
 
 /** 往缓冲区写 */
-int write_one(unsigned char *buf, int offset, int length)
+int write_one(unsigned char *buf, int length)
 {
-    if (offset >= 0)
-    {
-        // 大于零才随机访问，-1 的话还是顺序写
-        lseek(db_fd, offset, 0);
-    }
+    lseek(db_fd, 0, 2);
     int n_write = write(db_fd, buf, length);
     return n_write;
 }

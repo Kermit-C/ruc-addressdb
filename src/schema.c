@@ -2,7 +2,6 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
-#include <stdarg.h>
 #include "io.h"
 
 /**************** 模式相关 *******************/
@@ -58,6 +57,11 @@ struct address_schema_field_item *get_address_schema_from_name(char *field_name)
  * - 数据：不定长数据，具体由上方的模式确定
  */
 
+int get_buf_length(int tuple_length)
+{
+    return tuple_length + sizeof(int);
+}
+
 /** 从缓冲区获取元组长度 */
 int get_tuple_length(unsigned char *buf)
 {
@@ -86,6 +90,12 @@ unsigned char *create_one_buf()
         tuple_length += (address_schema + index)->length;
     }
     return (unsigned char *)malloc(tuple_length);
+}
+
+/** 删除一个缓冲区 */
+void delete_one_buf(unsigned char *buf)
+{
+    free(buf);
 }
 
 /** 从缓冲区获取字段值 */
@@ -144,20 +154,14 @@ void *get_tuple_data_field(unsigned char *buf, char *field_name)
     }
 }
 
-/**
- * 往缓冲区写数据
- * @example create_tuple(output_buf, name, phone, ...);
- */
-unsigned char *write_tuple(unsigned char *output_buf, char *fmt, ...)
+/** 往缓冲区写数据 */
+int write_tuple(unsigned char *output_buf, int valuec, char **value)
 {
-    va_list ap;        // 变长参数指针
-    va_start(ap, fmt); // 确定参数指针起点
-
     unsigned char *tuple = get_tuple_data(output_buf);
     int address_schema_index = 0;
     int address_offset = 0;
     struct address_schema_field_item *address_schema_item;
-    for (char *p = fmt; *p; p++)
+    for (int valuei = 0; valuei < valuec; valuei++)
     {
         address_schema_item = get_address_schema_from_index(address_schema_index);
         if (address_schema_item == NULL)
@@ -165,22 +169,23 @@ unsigned char *write_tuple(unsigned char *output_buf, char *fmt, ...)
             break;
         }
 
+        char *curr_str = value[valuei];
+        int len_curr_str;
         switch (((address_schema_item->sign >> 5) & 0b011))
         {
         case 0b000:
             // int 类型
-            *(int *)(tuple + address_offset) = atoi(va_arg(ap, char *));
+            *(int *)(tuple + address_offset) = atoi(curr_str);
             address_offset += address_schema_item->length;
             break;
         case 0b001:
             // float 类型
-            *(float *)(tuple + address_offset) = atof(va_arg(ap, char *));
+            *(float *)(tuple + address_offset) = atof(curr_str);
             address_offset += address_schema_item->length;
             break;
         case 0b010:
             // char 类型
-            char *curr_str = va_arg(ap, char *);
-            int len_curr_str = strlen(curr_str) + 1;
+            len_curr_str = strlen(curr_str) + 1;
             if (len_curr_str > address_schema_item->length)
             {
                 // 过长需要截断
@@ -192,8 +197,7 @@ unsigned char *write_tuple(unsigned char *output_buf, char *fmt, ...)
             break;
         case 0b011:
             // varchar 类型
-            char *curr_str = va_arg(ap, char *);
-            int len_curr_str = strlen(curr_str) + 1;
+            len_curr_str = strlen(curr_str) + 1;
             if (len_curr_str > address_schema_item->length)
             {
                 // 过长需要截断
@@ -212,6 +216,5 @@ unsigned char *write_tuple(unsigned char *output_buf, char *fmt, ...)
     }
     set_tuple_length(output_buf, address_offset);
 
-    va_end(ap);
-    return output_buf;
+    return get_buf_length(address_offset);
 }

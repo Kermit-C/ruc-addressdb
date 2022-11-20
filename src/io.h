@@ -11,4 +11,4 @@ int close_db();
 int read_one(unsigned char *buf, int offset, int length);
 
 /** 往缓冲区写 */
-int write_one(unsigned char *buf, int offset, int length);
+int write_one(unsigned char *buf, int length);

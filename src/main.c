@@ -1,5 +1,6 @@
 #include <getopt.h>
-#include "schema.h"
+#include <stdlib.h>
+#include <stdio.h>
 #include "client.h"
 
 void show_usage()
@@ -37,19 +38,24 @@ int main(int argc, char **argv)
             PATH = optarg;
             break;
 
+        case 'h':
+            show_usage();
+            exit(0);
+            break;
+
         case '?':
-            printf('Command args wrong. Use --help to checkout.\n');
+            printf("Command args wrong. Use --help to checkout.\n");
             exit(1);
             break;
 
         default:
-            printf('Command args wrong. Use --help to checkout.\n');
+            printf("Command args wrong. Use --help to checkout.\n");
             exit(1);
         }
     }
     if (optind < argc)
     {
-        printf('Command args wrong. Use --help to checkout.\n');
+        printf("Command args wrong. Use --help to checkout.\n");
         exit(1);
     }
 
@@ -58,8 +64,8 @@ int main(int argc, char **argv)
         "#########################\n"
         "#   Kermit Address DB   #\n"
         "#########################\n\n");
-    
-    client_worker();
+
+    client_worker(PATH);
 
     return 0;
 }
