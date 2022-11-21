@@ -62,7 +62,7 @@ int insert(char *syntax)
         // 构造插入数据的数组
         unsigned char *last_field_pch = item_first; // 上一个逗号的指针
         unsigned char *curr_field_pch;              // 逗号的指针
-        while ((curr_field_pch = strstr(last_field_pch + 1, ",")) != NULL || (curr_field_pch = strstr(last_field_pch + 1, ")")) != NULL)
+        while (((curr_field_pch = strstr(last_field_pch + 1, ",")) != NULL && curr_field_pch <= item_last) || ((curr_field_pch = strstr(last_field_pch + 1, ")")) != NULL && curr_field_pch <= item_last))
         {
             char *item_value = (char *)malloc(curr_field_pch - (last_field_pch + 1) + 1);
             memset(item_value, 0, sizeof(item_value));
@@ -85,6 +85,7 @@ int insert(char *syntax)
         }
 
         n_insert++;
+        item_first = item_last;
     }
 }
 
