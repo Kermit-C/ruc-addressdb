@@ -438,6 +438,8 @@ int convert_select_syntax(char *where_syntax, char *field_syntax, struct select_
                 strcat(whole_field_syntax, get_address_schema_field_name_from_index(address_schema_index));
                 if (address_schema_index < address_schema_length - 1)
                     strcat(whole_field_syntax, ",");
+                else
+                    strcat(whole_field_syntax, " ");
             }
 
             last_field_pch = whole_field_syntax - 1;

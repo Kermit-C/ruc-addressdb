@@ -8,7 +8,7 @@
             "program": "${workspaceFolder}/dist/addressdb",
             "args": [],
             "cwd": "${workspaceFolder}",
-            "preLaunchTask": "Compile Address DB"
+            // "preLaunchTask": "Compile Address DB"
         }
     ]
 }
