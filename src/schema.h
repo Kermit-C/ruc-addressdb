@@ -3,8 +3,11 @@
 /** 定义模式的每一个字段项 */
 extern struct address_schema_field_item;
 
-/** 创建通信簿用到的模式定义 */
-void create_address_schema(const int address_schema_length);
+// /** 创建通信簿用到的模式定义 */
+// void create_address_schema(const int address_schema_length);
+
+/** 从元数据获取通信簿用到的模式定义 */
+void get_address_schema_from_metadata(char *meta_path);
 
 /** 根据字段名获取字段项索引号 */
 int get_address_schema_index_from_name(char *field_name);

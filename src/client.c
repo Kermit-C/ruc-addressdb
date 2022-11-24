@@ -11,12 +11,12 @@
 extern int address_schema_length;
 
 /** 客户端 worker */
-void client_worker(char *path)
+void client_worker(char *path, char *meta_path)
 {
     // 打开数据库
     open_db(path);
-    // 创建模式
-    create_address_schema(address_schema_length);
+    // 读取元数据
+    get_address_schema_from_metadata(meta_path);
 
     // 指令相关变量
     char input[MAX_COMMAND]; // 输入
@@ -81,7 +81,34 @@ void client_worker(char *path)
             else if (stage == 1)
             {
                 if (strcmp(stage0, "select") == 0)
+                {
                     strncpy(stage1, last_pch + 1, curr_pch - (last_pch + 1));
+
+                    int is_finished = 1;
+                    unsigned char *tmp_pch = curr_pch;
+                    while (*(++tmp_pch) != '\0')
+                    {
+                        if (*tmp_pch != ' ')
+                            is_finished = 0;
+                    }
+
+                    if (is_finished == 1)
+                    {
+                        printf("3\n");
+                        char field_syntax[MAX_COMMAND] = {0};
+                        strcpy(field_syntax, stage1);
+                        int n_select = select_where(NULL, field_syntax);
+                        if (n_select >= 0)
+                        {
+                            printf("%d item has been selected.\n", n_select);
+                            is_complete = 1;
+                            break;
+                        }
+                        else
+                            break;
+                    }
+                }
+
                 else if (strcmp(stage0, "insert") == 0)
                 {
                     if (strncmp(last_pch + 1, "value", 5) == 0)
@@ -96,6 +123,7 @@ void client_worker(char *path)
             {
                 if (strcmp(stage0, "select") == 0)
                 {
+                    printf("0\n");
                     if (strncmp(last_pch + 1, "where", 5) == 0)
                         strncpy(stage2, last_pch + 1, curr_pch - (last_pch + 1));
                     else

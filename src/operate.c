@@ -348,82 +348,89 @@ int convert_select_syntax(char *where_syntax, char *field_syntax, struct select_
     memset(select_field, 0, address_schema_length * sizeof(char *));
 
     // 处理 where 参数
-    strcat(where_syntax, " ");
-    strcat(field_syntax, " ");
-    unsigned char *last_where_pch = where_syntax - 1; // 上一个 and 的指针
-    unsigned char *curr_where_pch;                    //  and 的指针
-    int curr_select_where_index = 0;                  // 当前运算符项索引号
-    while ((curr_where_pch = strstr(last_where_pch + 1, " ")) != NULL)
+    if (where_syntax != NULL)
     {
-        if (curr_where_pch - (last_where_pch + 1) == 0)
+        strcat(where_syntax, " ");
+        unsigned char *last_where_pch = where_syntax - 1; // 上一个 and 的指针
+        unsigned char *curr_where_pch;                    //  and 的指针
+        int curr_select_where_index = 0;                  // 当前运算符项索引号
+        while ((curr_where_pch = strstr(last_where_pch + 1, " ")) != NULL)
         {
-            // 跳过多余空格
+            if (curr_where_pch - (last_where_pch + 1) == 0)
+            {
+                // 跳过多余空格
+                last_where_pch = curr_where_pch;
+                continue;
+            }
+
+            if (strncmp(last_where_pch + 1, "and", 3) == 0)
+            {
+                // and 连接符处理
+                last_where_pch = curr_where_pch;
+                continue;
+            }
+
+            // 处理运算符
+            select_where[curr_select_where_index] = (struct select_where_item *)malloc(sizeof(struct select_where_item));
+            unsigned char *op_pch; // 操作符的指针
+            int op_length;         // 操作符长度
+            if (((op_pch = strstr(last_where_pch + 1, "!=")) != NULL) && op_pch < curr_where_pch)
+            {
+                select_where[curr_select_where_index]->op = 0b00000001;
+                op_length = 2;
+            }
+            else if (((op_pch = strstr(last_where_pch + 1, ">=")) != NULL) && op_pch < curr_where_pch)
+            {
+                select_where[curr_select_where_index]->op = 0b00000100;
+                op_length = 2;
+            }
+            else if (((op_pch = strstr(last_where_pch + 1, "<=")) != NULL) && op_pch < curr_where_pch)
+            {
+                select_where[curr_select_where_index]->op = 0b00000101;
+                op_length = 2;
+            }
+            else if (((op_pch = strstr(last_where_pch + 1, "=")) != NULL) && op_pch < curr_where_pch)
+            {
+                select_where[curr_select_where_index]->op = 0b00000000;
+                op_length = 1;
+            }
+            else if (((op_pch = strstr(last_where_pch + 1, ">")) != NULL) && op_pch < curr_where_pch)
+            {
+                select_where[curr_select_where_index]->op = 0b00000010;
+                op_length = 1;
+            }
+            else if (((op_pch = strstr(last_where_pch + 1, "<")) != NULL) && op_pch < curr_where_pch)
+            {
+                select_where[curr_select_where_index]->op = 0b00000011;
+                op_length = 1;
+            }
+            else
+            {
+                return -1;
+            }
+
+            // 处理选择字段名
+            memset(select_where[curr_select_where_index]->field_name, 0, field_name_length);
+            strncpy(select_where[curr_select_where_index]->field_name, last_where_pch + 1, op_pch - (last_where_pch + 1));
+
+            // 处理选择值
+            select_where[curr_select_where_index]->val = (char *)malloc(curr_where_pch - (op_pch + op_length) + 1);
+            memset(select_where[curr_select_where_index]->val, 0, curr_where_pch - (op_pch + op_length) + 1);
+            strncpy(select_where[curr_select_where_index]->val, op_pch + op_length, curr_where_pch - (op_pch + op_length));
+
+            curr_select_where_index++;
+
             last_where_pch = curr_where_pch;
-            continue;
         }
-
-        if (strncmp(last_where_pch + 1, "and", 3) == 0)
-        {
-            // and 连接符处理
-            last_where_pch = curr_where_pch;
-            continue;
-        }
-
-        // 处理运算符
-        select_where[curr_select_where_index] = (struct select_where_item *)malloc(sizeof(struct select_where_item));
-        unsigned char *op_pch; // 操作符的指针
-        int op_length;         // 操作符长度
-        if (((op_pch = strstr(last_where_pch + 1, "!=")) != NULL) && op_pch < curr_where_pch)
-        {
-            select_where[curr_select_where_index]->op = 0b00000001;
-            op_length = 2;
-        }
-        else if (((op_pch = strstr(last_where_pch + 1, ">=")) != NULL) && op_pch < curr_where_pch)
-        {
-            select_where[curr_select_where_index]->op = 0b00000100;
-            op_length = 2;
-        }
-        else if (((op_pch = strstr(last_where_pch + 1, "<=")) != NULL) && op_pch < curr_where_pch)
-        {
-            select_where[curr_select_where_index]->op = 0b00000101;
-            op_length = 2;
-        }
-        else if (((op_pch = strstr(last_where_pch + 1, "=")) != NULL) && op_pch < curr_where_pch)
-        {
-            select_where[curr_select_where_index]->op = 0b00000000;
-            op_length = 1;
-        }
-        else if (((op_pch = strstr(last_where_pch + 1, ">")) != NULL) && op_pch < curr_where_pch)
-        {
-            select_where[curr_select_where_index]->op = 0b00000010;
-            op_length = 1;
-        }
-        else if (((op_pch = strstr(last_where_pch + 1, "<")) != NULL) && op_pch < curr_where_pch)
-        {
-            select_where[curr_select_where_index]->op = 0b00000011;
-            op_length = 1;
-        }
-        else
-        {
-            return -1;
-        }
-
-        // 处理选择字段名
-        memset(select_where[curr_select_where_index]->field_name, 0, field_name_length);
-        strncpy(select_where[curr_select_where_index]->field_name, last_where_pch + 1, op_pch - (last_where_pch + 1));
-
-        // 处理选择值
-        select_where[curr_select_where_index]->val = (char *)malloc(curr_where_pch - (op_pch + op_length) + 1);
-        memset(select_where[curr_select_where_index]->val, 0, curr_where_pch - (op_pch + op_length) + 1);
-        strncpy(select_where[curr_select_where_index]->val, op_pch + op_length, curr_where_pch - (op_pch + op_length));
-
-        curr_select_where_index++;
-
-        last_where_pch = curr_where_pch;
+        *select_where_length = curr_select_where_index;
     }
-    *select_where_length = curr_select_where_index;
+    else
+    {
+        *select_where_length = 0;
+    }
 
     // 处理 field 参数
+    strcat(field_syntax, " ");
     unsigned char *last_field_pch = field_syntax - 1; // 上一个逗号的指针
     unsigned char *curr_field_pch;                    // 逗号的指针
     int curr_select_field_index = 0;                  // 当前索引号

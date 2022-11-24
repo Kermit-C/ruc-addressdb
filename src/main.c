@@ -8,13 +8,15 @@ void show_usage()
     printf(
         "Usage: addressdb [options]\n\n"
         "Options:\n"
-        "  -p, --path=<data path>   The path the data locates in.\n"
-        "  -h, --help               Show usage.\n\n");
+        "  -p, --path=<data path>           The path the data locates in.\n"
+        "  -m, --metapath=<metadata path>   The path the metadata locates in.\n"
+        "  -h, --help                       Show usage.\n\n");
 }
 
 int main(int argc, char **argv)
 {
     char *PATH = "./data";
+    char *META_PATH = "./meta";
 
     // 处理参数
     int arg_c;
@@ -24,10 +26,11 @@ int main(int argc, char **argv)
         int option_index = 0;
         static struct option long_options[] = {
             {"path", required_argument, 0, 'p'},
+            {"metapath", required_argument, 0, 'm'},
             {"help", no_argument, 0, 'h'},
             {0, 0, 0, 0}};
 
-        arg_c = getopt_long(argc, argv, "p:h",
+        arg_c = getopt_long(argc, argv, "p:m:h",
                             long_options, &option_index);
         if (arg_c == -1)
             break;
@@ -36,6 +39,10 @@ int main(int argc, char **argv)
         {
         case 'p':
             PATH = optarg;
+            break;
+
+        case 'm':
+            META_PATH = optarg;
             break;
 
         case 'h':
@@ -65,7 +72,7 @@ int main(int argc, char **argv)
         "#   Kermit Address DB   #\n"
         "#########################\n\n");
 
-    client_worker(PATH);
+    client_worker(PATH, META_PATH);
 
     return 0;
 }

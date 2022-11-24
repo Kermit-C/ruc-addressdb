@@ -15,3 +15,20 @@ void reset_read_offset();
 
 /** 往缓冲区写 */
 int write_one(unsigned char *buf, int length);
+
+extern int meta_fd;
+
+/** 创建元数据 */
+int create_metadata(char *path);
+
+/** 打开元数据文件文件描述符 */
+int open_metadata(char *path);
+
+/** 关闭元数据 */
+int close_metadata();
+
+/** 读元数据 */
+int read_metadata(char *buf, int length);
+
+/** 写元数据 */
+int write_metadata(char *buf, int length);
